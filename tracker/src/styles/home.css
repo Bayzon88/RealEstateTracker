@@ -1,0 +1,11 @@
+.table-container {
+  padding: 10px;
+  background: white;
+  border: 1px solid #e5e7eb; /* Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.button-container {
+  display: flex;
+}

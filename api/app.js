@@ -1,5 +1,6 @@
 const express = require('express');
-const exampleController = require('./controllers/exampleController');
+const realEstateController = require('./controllers/realEstateController');
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -10,7 +11,7 @@ app.get('/', (req, res) => {
     res.send('Welcome to the Express App!');
 });
 
-app.use('/api', exampleController);
+app.use('/api', realEstateController);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
