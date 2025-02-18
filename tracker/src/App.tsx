@@ -11,23 +11,25 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "./components/ui/s
 import { AppSidebar } from "./components/app-sidebar";
 import { Separator } from "@radix-ui/react-separator";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Label } from "./components/ui/label";
+import { Input } from "./components/ui/input";
+import { DialogComp } from "./components/Dialog/DialogComp";
 
 function App() {
   return (
     <SidebarProvider className='w-full'>
       <AppSidebar />
-      <div className='flex flex-col p-2'>
+      <div className='flex flex-col p-2 w-full'>
         <div className='flex  w-full'>
           <SidebarTrigger className='ml-1 ' />
           <div className='flex   w-full justify-end mb-3'>
-            <Button>Agregar Visita</Button>
+            <DialogComp />
           </div>
         </div>
         <SidebarInset>
           <BrowserRouter>
             <Routes>
               <Route path={"/"} element={<Home />} />
-              <Route path={"/addunit"} element={<InputData />} />
             </Routes>
           </BrowserRouter>
         </SidebarInset>

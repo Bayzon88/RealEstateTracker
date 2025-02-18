@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Link } from "react-router-dom";
+
 import {
   Table,
   TableBody,
@@ -122,8 +123,7 @@ export default function Home() {
           </Table>
         </div>
 
-        <div className='md:hidden flex flex-col gap-4'>
-          {" "}
+        <div className='md:hidden flex flex-col gap-4 m-auto'>
           {units.map((unit, index) => {
             return (
               <Card className='w-[350px]' key={index}>
