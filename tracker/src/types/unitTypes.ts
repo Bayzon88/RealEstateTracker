@@ -8,8 +8,9 @@ export interface Unit {
   dormitorios?: number; // Optional
   banos?: number; // Optional
   comentarios?: string | undefined; // Optional
-  fecha_entrega?: Date | undefined; // Optional
+  fecha_entrega: null | Date | undefined; // Optional
   estado: "Construido" | "Planos"; // Restrict to specific values
   imagen?: string; // Can be a URL or file path
   asesor_id?: number; // Foreign key reference to an advisor
+  distrito: string | null;
 }

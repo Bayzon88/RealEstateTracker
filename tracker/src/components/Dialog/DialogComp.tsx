@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -7,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -26,6 +28,8 @@ import ApiHandler from "@/services/ApiHandler";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { formatPrice } from "@/utils/utils";
+import { XIcon } from "lucide-react";
 
 const formSchema = z.object({
   empresa: z.string().min(2, { message: "Empresa debe tener al menos 2 caracteres." }).optional(),
@@ -68,10 +72,10 @@ export const DialogComp = () => {
       empresa: "",
       fecha_visita: new Date().toISOString().split("T")[0], // Default to today
       direccion: "",
-      precio: 1, // Ensure numbers start with a value (0 instead of undefined)
-      metraje: 10,
-      dormitorios: 1,
-      banos: 1,
+      precio: 0, // Ensure numbers start with a value (0 instead of undefined)
+      metraje: 0,
+      dormitorios: 0,
+      banos: 0,
       comentarios: "",
       fecha_entrega: "", // Empty string instead of undefined for date
       estado: "Construido", // Set default value
@@ -81,7 +85,7 @@ export const DialogComp = () => {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     const unitData: Unit = {
@@ -96,29 +100,50 @@ export const DialogComp = () => {
       comentarios: values.comentarios,
       fecha_entrega: new Date(values.fecha_entrega!),
       estado: values.estado, // Set default value
+      distrito: null,
       // imagen: values.imagen,
       // asesor_id: values.asesor_id,
     };
-    const response = ApiHandler.getInstance().saveNewVisit(unitData);
+    const response = await ApiHandler.getInstance().saveNewVisit(unitData);
+    if (response.status == 200) {
+      setIsOpen(false);
+      toast("Se registro la Unidad", {
+        description: `${unitData.empresa} - ${formatPrice(unitData.precio || 0)}`,
+      });
+    } else {
+      toast;
+    }
   }
 
+  //********************************* USESTATE *********************************/
+  const [isOpen, setIsOpen] = useState<boolean>(false);
   //********************************* USEEFFECT *********************************/
   useEffect(() => {
     console.log(form.formState.errors);
-  }, [form.formState.errors]);
+    toast("Se registro la Unidad", {
+      description: `test - ${formatPrice(1250000)}`,
+    });
+  }, []);
   return (
-    <Dialog>
+    <Dialog open={isOpen} modal={true} onOpenChange={() => console.log("changed")}>
       <DialogTrigger asChild>
-        <Button variant='default'>Agregar Visita</Button>
+        <Button variant='default' onClick={() => setIsOpen(true)}>
+          Agregar Unidad
+        </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[425px]'>
         <DialogHeader>
-          <DialogTitle>Agregar nueva visita</DialogTitle>
+          <DialogTitle>
+            <div className='flex w-full'>
+              <div className='w-full'>Agregar nueva unidad</div>
+              <XIcon onClick={() => setIsOpen(false)} />
+            </div>
+          </DialogTitle>
           <DialogDescription></DialogDescription>
         </DialogHeader>
-        <div className='grid gap-4 py-4'>
+        <div className='grid gap-4 py-2'>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-3'>
               <FormField
                 control={form.control}
                 name='empresa'
@@ -264,10 +289,15 @@ export const DialogComp = () => {
                   </FormItem>
                 )}
               />
-              <Button type='submit' onClick={() => form.handleSubmit((data) => console.log(data))}>
-                {" "}
-                Guardar
-              </Button>
+              <div className='flex w-full justify-end'>
+                <Button
+                  type='submit'
+                  onClick={() => form.handleSubmit((data) => console.log(data))}
+                >
+                  {" "}
+                  Guardar
+                </Button>
+              </div>
             </form>
           </Form>
         </div>

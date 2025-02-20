@@ -1,15 +1,10 @@
-import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Link } from "react-router-dom";
 
 import {
   Table,
   TableBody,
   TableCaption,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -22,54 +17,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import "../styles/home.css";
 import { Unit } from "@/types/unitTypes";
 import { Textarea } from "@/components/ui/textarea";
-
-const units: Unit[] = [
-  {
-    id: 1,
-    empresa: "Constructora ABC",
-    fecha_visita: new Date(),
-    direccion: "Av. Principal 123, Ciudad",
-    precio: 150000.5,
-    metraje: 120.5,
-    dormitorios: 3,
-    banos: 2,
-    estado: "Construido",
-    asesor_id: 5,
-    fecha_entrega: new Date(),
-    comentarios: "Este es un comentario",
-  },
-  {
-    id: 2,
-    empresa: "Constructora ABC",
-    fecha_visita: new Date(),
-    direccion: "Av. Principal 123, Ciudad",
-    precio: 150000.5,
-    metraje: 120.5,
-    dormitorios: 3,
-    banos: 2,
-    estado: "Construido",
-    asesor_id: 5,
-    fecha_entrega: new Date(),
-    comentarios: "Este es un comentario",
-  },
-];
+import { formatDate, formatPrice, googleMapsParamGenerator } from "@/utils/utils";
+import { useEffect, useState } from "react";
+import ApiHandler from "@/services/ApiHandler";
+import { toast } from "sonner";
+const apiHandler = ApiHandler.getInstance();
 
 const headers = [
   { key: "empresa", label: "Empresa", width: "w-[200px]" },
   { key: "fecha_visita", label: "Visita", width: "w-[150px]" },
   { key: "direccion", label: "Dirección", width: "w-[250px]" },
+  { key: "distrito", label: "Dirección", width: "w-[150px]" },
   { key: "precio", label: "Precio", width: "w-[120px]" },
   { key: "metraje", label: "Metraje", width: "w-[100px]" },
   { key: "dormitorios", label: "Dorm.", width: "w-[100px]" },
@@ -80,14 +44,27 @@ const headers = [
 
 export default function Home() {
   //********************************** USESTATE **********************************/
+  const [units, setUnits] = useState<Unit[]>([]);
+  //********************************** USEEFFECT **********************************/
+  useEffect(() => {
+    //Fetch initial data
+    fetchAllUnits();
+  }, []);
   //********************************** METHODS **********************************/
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumSignificantDigits: 6,
-    }).format(price);
+  const fetchAllUnits = async () => {
+    const response = await apiHandler.fetchAllUnits();
+
+    setUnits(response.data);
   };
+
+  const handleDelete = async (unit: Unit) => {
+    const response = await apiHandler.deleteUnit(unit);
+    if (response.status == 200) {
+      toast("THIS IS A TOAST");
+      fetchAllUnits();
+    }
+  };
+
   return (
     <>
       <div className='p-5 flex flex-col '>
@@ -96,7 +73,7 @@ export default function Home() {
             <TableCaption>Listado de visitas a posibles departamentos</TableCaption>
             <TableHeader>
               <TableRow>
-                {headers.map((header, index) => {
+                {headers.map((header) => {
                   return (
                     <TableHead key={header.key} className={header.width}>
                       {header.label}
@@ -109,14 +86,27 @@ export default function Home() {
               {units.map((unit) => (
                 <TableRow key={unit.id}>
                   <TableCell className='font-medium'>{unit.empresa}</TableCell>
-                  <TableCell>{unit.fecha_visita.toLocaleString()}</TableCell>
-                  <TableCell>{unit.direccion}</TableCell>
-                  <TableCell>{unit.precio}</TableCell>
+                  <TableCell>{formatDate(unit.fecha_visita)}</TableCell>
+                  <TableCell>
+                    <a
+                      style={{ textDecoration: "underline" }}
+                      href={`${googleMapsParamGenerator(unit.direccion)}`}
+                    >
+                      {unit.direccion}
+                    </a>
+                  </TableCell>
+                  <TableCell>{unit.distrito || ""}</TableCell>
+                  <TableCell>{formatPrice(unit.precio || 0)}</TableCell>
                   <TableCell>{unit.metraje} m2</TableCell>
                   <TableCell>{unit.dormitorios}</TableCell>
                   <TableCell>{unit.banos}</TableCell>
                   <TableCell>{unit.estado}</TableCell>
-                  <TableCell>{unit.fecha_entrega?.toLocaleString()}</TableCell>
+                  <TableCell> {formatDate(unit.fecha_entrega)}</TableCell>
+                  <TableCell>
+                    <Button variant='ghost' onClick={() => handleDelete(unit)}>
+                      Borrar
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -129,12 +119,19 @@ export default function Home() {
               <Card className='w-[350px]' key={index}>
                 <CardHeader>
                   <CardTitle>{unit.empresa}</CardTitle>
-                  <CardDescription>{unit.direccion}</CardDescription>
-                  <CardDescription>{unit.fecha_visita.toLocaleDateString()}</CardDescription>
+                  <CardDescription>{unit.direccion} </CardDescription>
+                  <CardDescription>{unit.distrito || ""}</CardDescription>
+                  <CardDescription>
+                    <Button variant='ghost' className='p-0'>
+                      <a href={`${googleMapsParamGenerator(unit.direccion)}`} className='flex p-0'>
+                        Ver en Google Maps
+                        <img src='/images/google_maps.png' width={20} height={20} />
+                      </a>
+                    </Button>
+                  </CardDescription>
+                  <CardDescription>{formatDate(unit.fecha_visita)}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className='h-30 w-30 m-auto'>Google Maps</div>
-
                   <div className='flex gap-2 justify-between mb-2'>
                     <div className='flex flex-col items-center'>
                       <Label className='w-full mb-2 w-20 text-center'>Dorm.</Label>
@@ -163,7 +160,7 @@ export default function Home() {
                     <div className='flex flex-col items-center'>
                       <Label className='w-full mb-2 w-20 text-center'>Entrega</Label>
                       <h4 className='text-muted-foreground text-sm'>
-                        {unit.fecha_entrega?.toLocaleDateString()}
+                        {formatDate(unit.fecha_entrega)}
                       </h4>
                     </div>
                   </div>
@@ -172,7 +169,7 @@ export default function Home() {
                   </div>
                 </CardContent>
                 <CardFooter className='flex justify-end'>
-                  <Button>Borrar</Button>
+                  <Button onClick={() => handleDelete(unit)}>Borrar</Button>
                 </CardFooter>
               </Card>
             );
